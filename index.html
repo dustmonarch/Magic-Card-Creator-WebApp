@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Magic Card Creator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f4f4f0;
+    --bg-tertiary: #eceae4;
+    --text-primary: #1a1a18;
+    --text-secondary: #5a5a56;
+    --text-tertiary: #9a9a94;
+    --border-tertiary: rgba(0,0,0,0.12);
+    --border-secondary: rgba(0,0,0,0.22);
+    --border-primary: rgba(0,0,0,0.38);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1e1e1c;
+      --bg-secondary: #282826;
+      --bg-tertiary: #323230;
+      --text-primary: #f0ede8;
+      --text-secondary: #a0a09a;
+      --text-tertiary: #606058;
+      --border-tertiary: rgba(255,255,255,0.10);
+      --border-secondary: rgba(255,255,255,0.18);
+      --border-primary: rgba(255,255,255,0.30);
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 28px;
+    align-items: start;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 750px) {
+    body { padding: 1rem; }
+    .app { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-tertiary);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.25rem;
+  }
+
+  .field { margin-bottom: 16px; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  textarea,
+  select {
+    width: 100%;
+    padding: 8px 11px;
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border-secondary);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--border-primary);
+    box-shadow: 0 0 0 3px rgba(100,100,240,0.12);
+  }
+
+  textarea { resize: vertical; min-height: 95px; line-height: 1.55; }
+
+  .hint {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 5px;
+    line-height: 1.45;
+  }
+
+  .row { display: flex; gap: 10px; }
+  .row .field { flex: 1; }
+
+  .creature-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-tertiary);
+    margin-top: 6px;
+  }
+  .creature-row .field { flex: 1; margin-bottom: 0; }
+
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    user-select: none;
+  }
+
+  input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    accent-color: #6060d0;
+  }
+
+  .art-upload {
+    width: 100%;
+    height: 72px;
+    border: 1.5px dashed var(--border-secondary);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    background: var(--bg-secondary);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .art-upload:hover { border-color: var(--border-primary); background: var(--bg-tertiary); }
+  .art-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  .section-divider {
+    border: none;
+    border-top: 0.5px solid var(--border-tertiary);
+    margin: 4px 0 16px;
+  }
+
+  .card-preview-wrap {
+    position: sticky;
+    top: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .preview-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    align-self: flex-start;
+  }
+
+  /* =========================================
+     MAGIC CARD: 63mm x 88mm → 280 x 390px
+     ========================================= */
+  .card {
+    width: 280px;
+    height: 390px;
+    border-radius: 14px;
+    position: relative;
+    font-family: 'Crimson Text', serif;
+    overflow: hidden;
+    box-shadow: 0 6px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.25);
+    flex-shrink: 0;
+  }
+
+  .card-frame {
+    position: absolute;
+    inset: 6px;
+    border-radius: 9px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  /* Header ~25px */
+  .card-header {
+    flex: 0 0 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 9px;
+  }
+
+  .card-name {
+    font-family: 'Cinzel', serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 6px;
+  }
+
+  .mana-cost-display { display: flex; gap: 2px; align-items: center; flex-shrink: 0; }
+
+  /* Art box: fills remaining space above text box */
+  .card-art {
+    flex: 1;
+    margin: 0 5px;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+  .card-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card-art-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-style: italic;
+  }
+
+  /* Spacer for full-art mode */
+  .card-art-spacer { flex: 1; }
+
+  /* Type line ~22px */
+  .card-type-line {
+    flex: 0 0 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    font-family: 'Cinzel', serif;
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  /* Text box: 35% of card height = 136px */
+  .card-text-box {
+    flex: 0 0 136px;
+    margin: 0 5px;
+    padding: 6px 8px 18px 8px;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    line-height: 1.42;
+  }
+
+  /* Footer ~18px */
+  .card-footer {
+    flex: 0 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    font-size: 6.5px;
+    opacity: 0.65;
+  }
+
+  .card-pt-box {
+    position: absolute;
+    bottom: 4px;
+    right: 6px;
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1.5px solid rgba(0,0,0,0.35);
+    z-index: 2;
+  }
+
+  /* Full-art styles */
+  .card.full-art .card-frame { inset: 0; border-radius: 14px; background: transparent; }
+  .card.full-art .card-header { flex: 0 0 30px; padding: 0 12px; background: transparent; }
+  .card.full-art .card-name { font-size: 11.5px; text-shadow: 0 1px 5px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.6); }
+  .card.full-art .card-type-line { flex: 0 0 20px; padding: 0 10px; background: transparent; }
+  .card.full-art .card-type-line span { text-shadow: 0 1px 5px rgba(0,0,0,0.95); }
+  .card.full-art .card-text-box {
+    flex: 0 0 136px;
+    margin: 0 8px;
+    padding: 8px 10px 20px 10px;
+    border-radius: 6px;
+    background: rgba(10, 8, 20, 0.62);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    color: #f0eaf8;
+    border: 0.5px solid rgba(255,255,255,0.14);
+  }
+  .card.full-art .card-pt-box {
+    background: rgba(10,8,20,0.65);
+    color: #f0eaf8;
+    border-color: rgba(255,255,255,0.25);
+    bottom: 5px;
+    right: 10px;
+  }
+  .card.full-art .card-footer { padding: 0 10px; opacity: 0.8; }
+  .card.full-art .card-footer span { color: #e0daf0; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
+  .card-bg-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; z-index: 0; }
+  .card-bg-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Crimson Text', serif; font-style: italic; font-size: 13px; opacity: 0.35; color: #fff; z-index: 0; }
+
+  /* Mana symbols */
+  .ms {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 13px; height: 13px; border-radius: 50%;
+    font-size: 7.5px; font-weight: 700; font-family: sans-serif;
+    border: 1px solid rgba(0,0,0,0.22); flex-shrink: 0; line-height: 1; vertical-align: middle;
+  }
+  .ms-sm { width: 9px; height: 9px; font-size: 5.5px; border-width: 0.8px; }
+  .ms-W { background: #f9f0e4; color: #7a5a10; }
+  .ms-U { background: #1a6ea0; color: #c8e8f8; }
+  .ms-B { background: #1a1a2e; color: #c8b8d8; }
+  .ms-R { background: #c0392b; color: #ffd5c0; }
+  .ms-G { background: #1a7a3a; color: #b8f0c8; }
+  .ms-C { background: #d0ccc8; color: #555; }
+  .ms-T { background: #b8a898; color: #3a2a1a; }
+  .ms-generic { background: #7a6a5a; color: #f0e8d8; font-size: 6px; }
+
+  /* Color themes */
+  .theme-W { background: #d8c888; }
+  .theme-W .card-frame { border: 2.5px solid #b89840; }
+  .theme-W .card-header { background: #e8d8a8; }
+  .theme-W .card-type-line { background: #d8c888; }
+  .theme-W .card-text-box { background: #f5efd8; color: #1a0e00; }
+  .theme-W .card-pt-box { background: #e8d8a8; color: #1a0e00; border-color: rgba(0,0,0,0.3); }
+  .theme-W .card-footer { color: #4a3a10; }
+  .theme-W .card-name { color: #1a0e00; }
+  .theme-W .card-type-line { color: #1a0e00; }
+  .theme-W .card-art-placeholder { background: #e8deb8; color: #7a5a20; }
+
+  .theme-U { background: #184878; }
+  .theme-U .card-frame { border: 2.5px solid #2a7ab8; }
+  .theme-U .card-header { background: #1e5888; }
+  .theme-U .card-type-line { background: #184878; }
+  .theme-U .card-text-box { background: #0e2d50; color: #c8e4f8; }
+  .theme-U .card-pt-box { background: #1e5888; color: #c8e4f8; border-color: #3a8acc; }
+  .theme-U .card-footer { color: #5888b8; }
+  .theme-U .card-name { color: #e0f0ff; }
+  .theme-U .card-type-line { color: #e0f0ff; }
+  .theme-U .card-art-placeholder { background: #0e2840; color: #3a7ab0; }
+
+  .theme-B { background: #100818; }
+  .theme-B .card-frame { border: 2.5px solid #4a2868; }
+  .theme-B .card-header { background: #180c28; }
+  .theme-B .card-type-line { background: #100818; }
+  .theme-B .card-text-box { background: #0a0518; color: #d8c8e8; }
+  .theme-B .card-pt-box { background: #180c28; color: #d8c8e8; border-color: #5a3878; }
+  .theme-B .card-footer { color: #4a3858; }
+  .theme-B .card-name { color: #e8d8f8; }
+  .theme-B .card-type-line { color: #e0d0f0; }
+  .theme-B .card-art-placeholder { background: #080418; color: #4a2868; }
+
+  .theme-R { background: #5a1000; }
+  .theme-R .card-frame { border: 2.5px solid #b83010; }
+  .theme-R .card-header { background: #6e1e08; }
+  .theme-R .card-type-line { background: #5a1000; }
+  .theme-R .card-text-box { background: #300800; color: #f8d8b8; }
+  .theme-R .card-pt-box { background: #6e1e08; color: #f8d8b8; border-color: #c84020; }
+  .theme-R .card-footer { color: #884830; }
+  .theme-R .card-name { color: #ffe0c8; }
+  .theme-R .card-type-line { color: #ffe0c8; }
+  .theme-R .card-art-placeholder { background: #300800; color: #b83010; }
+
+  .theme-G { background: #0a2010; }
+  .theme-G .card-frame { border: 2.5px solid #207830; }
+  .theme-G .card-header { background: #103020; }
+  .theme-G .card-type-line { background: #0a2010; }
+  .theme-G .card-text-box { background: #051208; color: #c8f0c0; }
+  .theme-G .card-pt-box { background: #103020; color: #c8f0c0; border-color: #287838; }
+  .theme-G .card-footer { color: #387848; }
+  .theme-G .card-name { color: #d8f8d0; }
+  .theme-G .card-type-line { color: #d8f8d0; }
+  .theme-G .card-art-placeholder { background: #051208; color: #207830; }
+
+  .theme-C { background: #383428; }
+  .theme-C .card-frame { border: 2.5px solid #807868; }
+  .theme-C .card-header { background: #484438; }
+  .theme-C .card-type-line { background: #383428; }
+  .theme-C .card-text-box { background: #1c1a14; color: #e8e0c8; }
+  .theme-C .card-pt-box { background: #484438; color: #e8e0c8; border-color: #807868; }
+  .theme-C .card-footer { color: #787060; }
+  .theme-C .card-name { color: #f0e8d8; }
+  .theme-C .card-type-line { color: #f0e8d8; }
+  .theme-C .card-art-placeholder { background: #1c1a14; color: #807868; }
+
+  .theme-M { background: #503800; }
+  .theme-M .card-frame { border: 2.5px solid #c89800; }
+  .theme-M .card-header { background: #604800; }
+  .theme-M .card-type-line { background: #503800; }
+  .theme-M .card-text-box { background: #281c00; color: #f8e898; }
+  .theme-M .card-pt-box { background: #604800; color: #f8e898; border-color: #c89800; }
+  .theme-M .card-footer { color: #887040; }
+  .theme-M .card-name { color: #fff0a0; }
+  .theme-M .card-type-line { color: #fff0a0; }
+  .theme-M .card-art-placeholder { background: #281c00; color: #c89800; }
+
+  .flavor-text { font-style: italic; opacity: 0.78; display: block; }
+  .flavor-divider { border: none; border-top: 0.5px solid currentColor; opacity: 0.25; margin: 3px 0; }
+  .keyword { font-weight: 700; }
+  .ability-para { margin-bottom: 3px; }
+  .ability-para:last-child { margin-bottom: 0; }
+
+  /* Buttons */
+  .btn {
+    padding: 10px 20px;
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border-secondary);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: var(--bg-tertiary); }
+  .btn-row { display: flex; gap: 8px; }
+
+  /* Color picker */
+  .color-picker { display: flex; gap: 7px; flex-wrap: wrap; }
+  .color-btn {
+    width: 27px; height: 27px; border-radius: 50%;
+    border: 2px solid transparent; cursor: pointer;
+    transition: transform 0.12s; font-size: 10px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700;
+  }
+  .color-btn:hover { transform: scale(1.1); }
+  .color-btn.active { border-color: #6060d0; transform: scale(1.15); box-shadow: 0 0 0 2px rgba(100,100,220,0.3); }
+  .cb-W { background: #f9f0e4; color: #7a5a10; }
+  .cb-U { background: #1a6ea0; color: #c8e8f8; }
+  .cb-B { background: #1a1a2e; color: #c8b8d8; }
+  .cb-R { background: #c0392b; color: #ffd5c0; }
+  .cb-G { background: #1a7a3a; color: #b8f0c8; }
+  .cb-C { background: #d0ccc8; color: #555; }
+  .cb-M { background: #c89800; color: #281c00; }
+
+  .mana-preview {
+    display: flex; gap: 3px; align-items: center;
+    min-height: 22px; flex-wrap: wrap;
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border-tertiary);
+    border-radius: var(--radius-md);
+    padding: 3px 9px; margin-top: 5px;
+  }
+
+  .rarity-pip { width: 11px; height: 11px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .rarity-C-pip { background: #a09080; }
+  .rarity-U-pip { background: #90a8c0; }
+  .rarity-R-pip { background: #c89800; }
+  .rarity-M-pip { background: #d06010; }
+</style>
+</head>
+<body>
+
+<h1>Magic Card Creator</h1>
+
+<div class="app">
+  <!-- LEFT PANEL -->
+  <div class="panel">
+    <div class="panel-title">Card Builder</div>
+
+    <div class="field">
+      <label>Card Name</label>
+      <input type="text" id="cardName" value="Arcane Wyrm" placeholder="Enter card name..." />
+    </div>
+
+    <div class="field">
+      <label>Card Color</label>
+      <div class="color-picker" id="colorPicker">
+        <button class="color-btn cb-W" data-color="W" title="White">W</button>
+        <button class="color-btn cb-U active" data-color="U" title="Blue">U</button>
+        <button class="color-btn cb-B" data-color="B" title="Black">B</button>
+        <button class="color-btn cb-R" data-color="R" title="Red">R</button>
+        <button class="color-btn cb-G" data-color="G" title="Green">G</button>
+        <button class="color-btn cb-C" data-color="C" title="Colorless">C</button>
+        <button class="color-btn cb-M" data-color="M" title="Multicolor">M</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Mana Cost <span style="font-weight:400;opacity:.65">(e.g. {3}{U}{U})</span></label>
+      <input type="text" id="manaCost" value="{4}{U}{U}" placeholder="{3}{U}{U}" />
+      <div class="mana-preview" id="manaPreview"></div>
+      <div class="hint">Use {W} {U} {B} {R} {G} {C} {T} for colored/tap symbols, {1}–{20} for generic mana</div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Supertype</label>
+        <select id="superType">
+          <option value="">—</option>
+          <option value="Legendary ">Legendary</option>
+          <option value="Basic ">Basic</option>
+          <option value="Snow ">Snow</option>
+        </select>
+      </div>
+      <div class="field" style="flex:2">
+        <label>Card Type</label>
+        <select id="cardType">
+          <option value="Creature">Creature</option>
+          <option value="Instant">Instant</option>
+          <option value="Sorcery">Sorcery</option>
+          <option value="Enchantment">Enchantment</option>
+          <option value="Artifact">Artifact</option>
+          <option value="Planeswalker">Planeswalker</option>
+          <option value="Land">Land</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Subtype</label>
+      <input type="text" id="subtype" value="Dragon Wizard" placeholder="e.g. Zombie, Human Warrior" />
+    </div>
+
+    <div class="field">
+      <label>Card Text</label>
+      <textarea id="cardText">Flying, Hexproof
+
+{T}: Add {U}{U} to your mana pool.
+
+When ~ enters the battlefield, draw two cards.
+
+*"The arcane wyrm speaks only in riddles — and lightning."*</textarea>
+      <div class="hint">Use *text* for italics · ~ for card name · *"..."* for flavor text · {W}{U}{B}{R}{G}{C}{T}{1}–{15} for symbols</div>
+    </div>
+
+    <div class="field">
+      <label class="toggle-label">
+        <input type="checkbox" id="isCreature" checked />
+        Creature card (show Power / Toughness)
+      </label>
+      <div class="creature-row" id="creatureRow">
+        <div class="field">
+          <label>Power</label>
+          <input type="number" id="power" value="4" min="0" max="99" style="text-align:center" />
+        </div>
+        <div style="font-size:22px;color:var(--text-tertiary);padding-bottom:4px;line-height:1">/</div>
+        <div class="field">
+          <label>Toughness</label>
+          <input type="number" id="toughness" value="4" min="0" max="99" style="text-align:center" />
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-divider" />
+
+    <div class="field">
+      <label class="toggle-label">
+        <input type="checkbox" id="isFullArt" />
+        Full Art mode
+      </label>
+      <div class="hint" style="margin-top:0">Image fills the entire card; text box becomes frosted-glass overlay</div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Rarity</label>
+        <select id="rarity">
+          <option value="C">Common</option>
+          <option value="U">Uncommon</option>
+          <option value="R" selected>Rare</option>
+          <option value="M">Mythic Rare</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Artist</label>
+        <input type="text" id="artist" value="Unknown Artist" placeholder="Artist name" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Card Art</label>
+      <div class="art-upload" id="artUpload">
+        <span id="artLabel">Click or drag to upload art image</span>
+        <input type="file" id="artFile" accept="image/*" />
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: PREVIEW -->
+  <div class="card-preview-wrap">
+    <div class="preview-label">Live Preview</div>
+    <div class="card theme-U" id="magicCard">
+      <div class="card-frame" id="cardFrame">
+        <div class="card-header">
+          <span class="card-name" id="previewName">Arcane Wyrm</span>
+          <div class="mana-cost-display" id="previewManaCost"></div>
+        </div>
+        <div class="card-art" id="previewArt">
+          <div class="card-art-placeholder">✦ Art ✦</div>
+        </div>
+        <div class="card-type-line">
+          <span id="previewType">Creature — Dragon Wizard</span>
+          <span class="rarity-pip rarity-R-pip" id="rarityPip"></span>
+        </div>
+        <div class="card-text-box" id="previewText"></div>
+        <div class="card-pt-box" id="previewPT" style="display:none">4/4</div>
+        <div class="card-footer">
+          <span>™ &amp; © 2025 Wizards of the Coast</span>
+          <span id="previewArtist">Illus. Unknown Artist</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="downloadCard()">Download Card PNG</button>
+    </div>
+
+    <div class="hint" style="text-align:center;max-width:280px">
+      Card renders at 3× resolution for crisp printing
+    </div>
+  </div>
+</div>
+
+<!-- html2canvas from CDN for PNG export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const state = {
+  name: 'Arcane Wyrm', color: 'U', manaCost: '{4}{U}{U}',
+  superType: '', cardType: 'Creature', subtype: 'Dragon Wizard',
+  text: `Flying, Hexproof\n\n{T}: Add {U}{U} to your mana pool.\n\nWhen ~ enters the battlefield, draw two cards.\n\n*"The arcane wyrm speaks only in riddles — and lightning."*`,
+  isCreature: true, power: 4, toughness: 4, rarity: 'R',
+  artist: 'Unknown Artist', artSrc: null, fullArt: false
+};
+
+function parseManaSymbols(str, small) {
+  if (!str) return '';
+  const cls = small ? 'ms ms-sm' : 'ms';
+  return str.replace(/\{([^}]+)\}/g, (_, sym) => {
+    sym = sym.toUpperCase();
+    let cc = 'ms-generic';
+    if (['W','U','B','R','G','C'].includes(sym)) cc = 'ms-' + sym;
+    else if (sym === 'T') cc = 'ms-T';
+    return `<span class="${cls} ${cc}">${sym}</span>`;
+  });
+}
+
+function parseCardText(rawText, cardName) {
+  if (!rawText) return '';
+  let html = '';
+  for (const line of rawText.split('\n')) {
+    if (!line.trim()) continue;
+    const fm = line.match(/^\*"(.+)"\*$/);
+    if (fm) {
+      html += `<hr class="flavor-divider"><span class="flavor-text">"${parseInline(fm[1], cardName)}"</span>`;
+      continue;
+    }
+    html += `<p class="ability-para">${parseInline(line, cardName)}</p>`;
+  }
+  return html;
+}
+
+function parseInline(text, cardName) {
+  let r = text.replace(/~/g, cardName || '~');
+  r = parseManaSymbols(r, true);
+  r = r.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  r = r.replace(/^(Flying|Trample|Haste|Vigilance|Deathtouch|Lifelink|Reach|Menace|Flash|Hexproof|Indestructible|First Strike|Double Strike|Prowess|Persist|Undying|Cascade|Infect|Exalted|Protection)(,?\s*)/gi,
+    (m, kw, sep) => `<span class="keyword">${kw}</span>${sep}`);
+  return r;
+}
+
+function autoFitTextBox() {
+  const box = document.getElementById('previewText');
+  if (!box) return;
+  const sizes = [10.5, 10, 9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6, 5.5];
+  for (let i = 0; i < sizes.length; i++) {
+    box.style.fontSize = sizes[i] + 'px';
+    box.style.lineHeight = i < 3 ? '1.44' : i < 6 ? '1.40' : '1.34';
+    if (box.scrollHeight <= box.clientHeight + 2) break;
+  }
+}
+
+function buildNormalCard() {
+  const card = document.getElementById('magicCard');
+  const frame = document.getElementById('cardFrame');
+  const themes = { W:'theme-W', U:'theme-U', B:'theme-B', R:'theme-R', G:'theme-G', C:'theme-C', M:'theme-M' };
+  card.className = 'card ' + (themes[state.color] || 'theme-C');
+  card.style.background = '';
+  let bg = card.querySelector('.card-bg-art'); if (bg) bg.remove();
+  let ph = card.querySelector('.card-bg-placeholder'); if (ph) ph.remove();
+
+  frame.innerHTML = `
+    <div class="card-header">
+      <span class="card-name" id="previewName"></span>
+      <div class="mana-cost-display" id="previewManaCost"></div>
+    </div>
+    <div class="card-art" id="previewArt"></div>
+    <div class="card-type-line">
+      <span id="previewType"></span>
+      <span class="rarity-pip rarity-${state.rarity}-pip" id="rarityPip"></span>
+    </div>
+    <div class="card-text-box" id="previewText"></div>
+    <div class="card-pt-box" id="previewPT" style="display:none"></div>
+    <div class="card-footer">
+      <span>™ &amp; © 2025 Wizards of the Coast</span>
+      <span id="previewArtist"></span>
+    </div>`;
+  populateFields();
+}
+
+function buildFullArtCard() {
+  const card = document.getElementById('magicCard');
+  const frame = document.getElementById('cardFrame');
+  card.className = 'card full-art';
+  card.style.background = '#0a0818';
+
+  let bg = card.querySelector('.card-bg-art');
+  let ph = card.querySelector('.card-bg-placeholder');
+
+  if (state.artSrc) {
+    if (!bg) { bg = document.createElement('img'); bg.className = 'card-bg-art'; card.insertBefore(bg, frame); }
+    bg.src = state.artSrc;
+    if (ph) ph.remove();
+  } else {
+    if (bg) bg.remove();
+    if (!ph) { ph = document.createElement('div'); ph.className = 'card-bg-placeholder'; ph.textContent = 'Upload art to fill card'; card.insertBefore(ph, frame); }
+  }
+
+  frame.innerHTML = `
+    <div class="card-header">
+      <span class="card-name" id="previewName"></span>
+      <div class="mana-cost-display" id="previewManaCost"></div>
+    </div>
+    <div class="card-art-spacer"></div>
+    <div class="card-type-line">
+      <span id="previewType"></span>
+      <span class="rarity-pip rarity-${state.rarity}-pip" id="rarityPip"></span>
+    </div>
+    <div class="card-text-box" id="previewText"></div>
+    <div class="card-pt-box" id="previewPT" style="display:none"></div>
+    <div class="card-footer">
+      <span>™ &amp; © 2025 Wizards of the Coast</span>
+      <span id="previewArtist"></span>
+    </div>`;
+  populateFields();
+}
+
+function populateFields() {
+  document.getElementById('previewName').textContent = state.name || 'Unnamed Card';
+  document.getElementById('previewManaCost').innerHTML = parseManaSymbols(state.manaCost, false);
+
+  const typeLine = [(state.superType + state.cardType), state.subtype].filter(s => s && s.trim()).join(' — ');
+  document.getElementById('previewType').textContent = typeLine;
+
+  const tb = document.getElementById('previewText');
+  tb.innerHTML = parseCardText(state.text, state.name);
+
+  const pt = document.getElementById('previewPT');
+  if (state.isCreature && state.cardType === 'Creature') {
+    pt.style.display = 'block';
+    pt.textContent = state.power + '/' + state.toughness;
+  } else {
+    pt.style.display = 'none';
+  }
+
+  document.getElementById('previewArtist').textContent = 'Illus. ' + (state.artist || 'Unknown');
+
+  if (!state.fullArt) {
+    const artEl = document.getElementById('previewArt');
+    if (artEl) {
+      artEl.innerHTML = state.artSrc
+        ? `<img src="${state.artSrc}" alt="art" style="width:100%;height:100%;object-fit:cover;display:block;" />`
+        : `<div class="card-art-placeholder">✦ Art ✦</div>`;
+    }
+  }
+
+  document.getElementById('manaPreview').innerHTML =
+    parseManaSymbols(state.manaCost, false) ||
+    '<span style="font-size:11px;color:var(--text-tertiary)">preview</span>';
+
+  requestAnimationFrame(autoFitTextBox);
+}
+
+function updateCard() {
+  if (state.fullArt) {
+    const card = document.getElementById('magicCard');
+    const frame = document.getElementById('cardFrame');
+    let bg = card.querySelector('.card-bg-art');
+    let ph = card.querySelector('.card-bg-placeholder');
+    if (state.artSrc) {
+      if (!bg) { bg = document.createElement('img'); bg.className = 'card-bg-art'; card.insertBefore(bg, frame); }
+      bg.src = state.artSrc;
+      if (ph) ph.remove();
+    } else {
+      if (bg) bg.remove();
+      if (!ph) { ph = document.createElement('div'); ph.className = 'card-bg-placeholder'; ph.textContent = 'Upload art to fill card'; card.insertBefore(ph, frame); }
+    }
+    populateFields();
+  } else {
+    buildNormalCard();
+  }
+}
+
+function bind(id, key, ev, transform) {
+  ev = ev || 'input';
+  transform = transform || (v => v);
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener(ev, () => { state[key] = transform(el.value); updateCard(); });
+}
+
+bind('cardName', 'name');
+bind('manaCost', 'manaCost');
+bind('superType', 'superType', 'change');
+bind('cardType', 'cardType', 'change', v => {
+  document.getElementById('creatureRow').style.display = (v === 'Creature') ? 'flex' : 'none';
+  return v;
+});
+bind('subtype', 'subtype');
+bind('cardText', 'text');
+bind('power', 'power', 'input', v => parseInt(v) || 0);
+bind('toughness', 'toughness', 'input', v => parseInt(v) || 0);
+bind('rarity', 'rarity', 'change');
+bind('artist', 'artist');
+
+document.getElementById('isCreature').addEventListener('change', e => {
+  state.isCreature = e.target.checked;
+  document.getElementById('creatureRow').style.display = e.target.checked ? 'flex' : 'none';
+  updateCard();
+});
+
+document.getElementById('isFullArt').addEventListener('change', e => {
+  state.fullArt = e.target.checked;
+  if (state.fullArt) buildFullArtCard();
+  else buildNormalCard();
+});
+
+document.querySelectorAll('.color-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.color = btn.dataset.color;
+    updateCard();
+  });
+});
+
+document.getElementById('artFile').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    state.artSrc = ev.target.result;
+    document.getElementById('artLabel').textContent = file.name;
+    updateCard();
+  };
+  reader.readAsDataURL(file);
+});
+
+function downloadCard() {
+  const btn = event.target;
+  btn.textContent = 'Rendering...';
+  btn.disabled = true;
+  html2canvas(document.getElementById('magicCard'), { scale: 3, useCORS: true, logging: false })
+    .then(canvas => {
+      const a = document.createElement('a');
+      a.download = (state.name || 'card').replace(/\s+/g, '-').toLowerCase() + '.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+      btn.textContent = 'Download Card PNG';
+      btn.disabled = false;
+    });
+}
+
+updateCard();
+</script>
+</body>
+</html>
